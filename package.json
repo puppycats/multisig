@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "ton-core": "^0.46.0"
+  },
+  "scripts": {
+    "build": "yarn tsc --build"
+  }
+}
