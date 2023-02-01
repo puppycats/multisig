@@ -26,8 +26,8 @@ export class Order {
         this.messagesCell = beBra.endCell()
     }
 
-    public addSignature (ownerId: number, kp: KeyPair) {
-        
+    public addSignature (ownerId: number, secretKey: Buffer) {
+        this.signatures.set(ownerId, sign(this.messagesCell.hash(), secretKey))
     }
 
     public unionSignatures (other: Order) {
