@@ -1,12 +1,12 @@
-import { beginCell, Builder, Cell, Dictionary, storeMessage } from 'ton-core'
+import { sign } from 'ton-crypto'
 import { MessageWithMode } from './types'
-import { sign, KeyPair } from 'ton-crypto'
+import { beginCell, Builder, Cell, Dictionary, storeMessage } from 'ton-core'
 
 export class Order {
     public messages: MessageWithMode[]
     public signatures: Dictionary<number, Buffer>
+    public messagesCell: Cell
     private queryOffset: number
-    private messagesCell: Cell
 
     constructor (offset?: number) {
         this.messages = []
