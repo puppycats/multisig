@@ -10,6 +10,6 @@
     },
     "$schema": "https://json.schemastore.org/tsconfig",
     "files": [
-        "src/functions.ts"
+        "src/index.ts"
     ]
 }

@@ -1,4 +1,4 @@
-import { Dictionary } from 'ton-core/dist/dict/Dictionary';
+import { Dictionary } from 'ton-core';
 import { MessageWithMode } from './types';
 
 export class Order {
