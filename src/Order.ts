@@ -1,21 +1,33 @@
-import { Dictionary } from 'ton-core'
+import { beginCell, Builder, Cell, Dictionary, storeMessage } from 'ton-core'
 import { MessageWithMode } from './types'
+import { sign, KeyPair } from 'ton-crypto'
 
 export class Order {
     public messages: MessageWithMode[]
     public signatures: Dictionary<number, Buffer>
+    private queryOffset: number
+    private messagesCell: Cell
 
-    constructor (messages?: MessageWithMode[], signatures?: Dictionary<number, Buffer>) {
-        this.messages = messages || []
-        this.signatures = signatures || Dictionary.empty()
+    constructor (offset?: number) {
+        this.messages = []
+        this.signatures = Dictionary.empty()
+        this.queryOffset = offset || 7200
+        this.messagesCell = Cell.EMPTY
     }
 
     public addMessage (message: MessageWithMode) {
+        this.clearSignatures()
         this.messages.push(message)
+        let beBra: Builder = beginCell().storeUint(this.getQuerryId(), 64)
+        for (const message of this.messages) {
+            beBra.storeUint(message.mode, 8)
+            beBra.storeRef(beginCell().store(storeMessage(message.message)).endCell())
+        }
+        this.messagesCell = beBra.endCell()
     }
 
-    public addSignature (ownerId: number, signature: Buffer) {
-        this.signatures.set(ownerId, signature)
+    public addSignature (ownerId: number, kp: KeyPair) {
+        
     }
 
     public unionSignatures (other: Order) {
@@ -26,6 +38,11 @@ export class Order {
 
     public clearSignatures () {
         this.signatures = Dictionary.empty()
+    }
+
+    private getQuerryId () {
+        const time = BigInt(Math.floor(Date.now() / 1000 + this.queryOffset))
+        return time << 32n
     }
 }
 
