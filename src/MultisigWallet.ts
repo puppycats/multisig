@@ -39,8 +39,8 @@ export class MultisigWallet {
         this.address = contractAddress(workchain, stateInit)
     }
     
-    static fromAddress (address: Address) {
-
+    static fromAddress (address: Address, client: TonClient) {
+        
     }
 
     public sendOrder (order: Order, secretKey: Buffer) {
