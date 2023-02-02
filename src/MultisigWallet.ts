@@ -51,6 +51,26 @@ export class MultisigWallet {
         return new MultisigWallet(publicKeys, address.workChain, walletId, k)
     }
 
+    public formStateInit (): StateInit {
+        let owners: Dictionary<number, Cell> = Dictionary.empty()
+        for (let i = 0; i < this.publicKeys.length; i += 1) {
+            owners.set(i, beginCell().storeBuffer(this.publicKeys[i]).storeUint(0, 8).endCell())
+        }
+        const data: Cell = beginCell()
+            .storeUint(this.walletId, 32)
+            .storeUint(this.publicKeys.length, 8)
+            .storeUint(this.k, 8)
+            .storeUint(0, 64)
+            .storeBit(1)
+            .storeDict(owners)
+            .storeBit(0)
+        .endCell()
+        return {
+            code: MULTISIG_CODE,
+            data
+        }
+    }
+
     public sendOrder (client: TonClient, order: Order, secretKey: Buffer) {
         let sugoma = beginCell()
             .storeDict(order.signatures, Dictionary.Keys.Uint(8), Dictionary.Values.Buffer(64))
