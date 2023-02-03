@@ -21,15 +21,19 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 
 #### Methods
 >deployExternal
-`deployExternal (client: TonClient): void`
- - `client` - `TonClient` instance
-Deploy this MutlisigWallet via external message
+`deployExternal (provider: ContractProvider): void`
+ - `provider` - `ContractProvider` instance
+Deploy this `MutlisigWallet` via external message
 
 >deployInternal
 `deployInternal (sender: Sender, value: bigint): void`
  - `sender` - `Sender` instance
  - `value` - value in nanoTons for deploy message
-Deploy this MultisigWallet via internal message
+Deploy this `MultisigWallet` via internal message
+
+>formStateInit
+`formStateInit (): StateInit`
+Form `StateInit` for this `MultisigWallet`
 
 >sendOrder
 `sendOrder (order: Order, secretKey: Buffer): void`

@@ -1,7 +1,9 @@
 import { expect } from 'chai'
-import { beginCell, Cell, CurrencyCollection, Address, CommonMessageInfoInternal } from 'ton-core'
-import { getSecureRandomBytes, KeyPair, keyPairFromSeed } from 'ton-crypto'
+import { beginCell, Cell, Address, CommonMessageInfoInternal, Contract, ContractProvider } from 'ton-core'
+import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto'
 import { testAddress } from 'ton-emulator'
+import { ContractSystem } from 'ton-emulator/dist/emulator/ContractSystem'
+import { Treasure } from 'ton-emulator/dist/treasure/Treasure'
 import { MessageWithMode } from '../src/types'
 import { Order, MultisigWallet } from './../src/index'
 
@@ -43,16 +45,49 @@ describe('Order', () => {
     })
 })
 
-describe('MultisigWallet', async () => {
-    var publicKeys: Buffer[] = [],
-        secretKeys: Buffer[] = []
-    for (let i = 0; i < 10; i += 1) {
-        let kp = keyPairFromSeed(await getSecureRandomBytes(32))
-        publicKeys.push(kp.publicKey)
-        secretKeys.push(kp.secretKey)
+describe('MultisigWallet', () => {
+    var publicKeys: Buffer[]
+    var secretKeys: Buffer[]
+    var system: ContractSystem
+    var treasure: Treasure
+
+    function createProvider (multisig: MultisigWallet): ContractProvider {
+        const stateInit = multisig.formStateInit()
+        return system.provider({
+            address: multisig.address,
+            init: {
+                code: stateInit.code!,
+                data: stateInit.data!
+            }
+        })
     }
+
+    before(async () => {
+        publicKeys = []
+        secretKeys = []
+        for (let i = 0; i < 10; i += 1) {
+            let kp = keyPairFromSeed(await getSecureRandomBytes(32))
+            publicKeys.push(kp.publicKey)
+            secretKeys.push(kp.secretKey)
+        }
+    })
+
+    beforeEach(async () => {
+        system = await ContractSystem.create()
+        treasure = await system.treasure('my-treasure')
+    })
 
     it('should create MultisigWallet object', () => {
         let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
+    })
+
+    it('should deploy via internal message', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
+        let provider = createProvider(multisig)
+        
+        await multisig.deployInternal(treasure)
+        let txs = await system.run()
+        expect(txs).to.have.lengthOf(2)
+        expect(txs[1].endStatus).to.equal('active')
     })
 })
