@@ -66,6 +66,18 @@ export class MultisigWallet {
         }
     }
 
+    public deployExternal (client: TonClient) {
+        client.sendMessage({
+            body: Cell.EMPTY,
+            info: {
+                dest: this.address,
+                importFee: 0n,
+                type: 'external-in'
+            },
+            init: this.formStateInit()
+        })
+    }
+
     public sendOrder (client: TonClient, order: Order, secretKey: Buffer) {
         let signedMessages = beginCell()
             .storeDict(order.signatures, Dictionary.Keys.Uint(8), Dictionary.Values.Buffer(64))
