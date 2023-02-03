@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 import { beginCell, Cell, CurrencyCollection, Address, CommonMessageInfoInternal } from 'ton-core'
+import { getSecureRandomBytes, KeyPair, keyPairFromSeed } from 'ton-crypto'
 import { testAddress } from 'ton-emulator'
 import { MessageWithMode } from '../src/types'
 import { Order, MultisigWallet } from './../src/index'
@@ -33,13 +34,8 @@ function createInternalMessageWithMode (bounce: boolean, dest: Address, value: b
 }
 
 describe('Order', () => {
-    let order: Order
-
-    beforeEach(() => {
-        order = new Order()
-    })
-
-    it ('should add messages', () => {
+    it('should add messages', () => {
+        let order = new Order()
         order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
         order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
         order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
@@ -47,6 +43,16 @@ describe('Order', () => {
     })
 })
 
-describe('MultisigWallet', () => {
-    
+describe('MultisigWallet', async () => {
+    var publicKeys: Buffer[] = [],
+        secretKeys: Buffer[] = []
+    for (let i = 0; i < 10; i += 1) {
+        let kp = keyPairFromSeed(await getSecureRandomBytes(32))
+        publicKeys.push(kp.publicKey)
+        secretKeys.push(kp.secretKey)
+    }
+
+    it('should create MultisigWallet object', () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
+    })
 })
