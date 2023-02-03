@@ -40,7 +40,7 @@ Returns owner id by public key
 
 ### Order
 #### Constructor
->`constructor (offset?: number)`
+>`new Order(offset?: number)`
 - `offset` - the time in seconds after which the order will expire (automatically updates after each `addMessage` call)
 
 #### Properties
