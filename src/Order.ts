@@ -18,12 +18,12 @@ export class Order {
     public addMessage (message: MessageWithMode) {
         this.clearSignatures()
         this.messages.push(message)
-        let beBra: Builder = beginCell().storeUint(this.getQuerryId(), 64)
+        let b: Builder = beginCell().storeUint(this.getQuerryId(), 64)
         for (const message of this.messages) {
-            beBra.storeUint(message.mode, 8)
-            beBra.storeRef(beginCell().store(storeMessage(message.message)).endCell())
+            b.storeUint(message.mode, 8)
+            b.storeRef(beginCell().store(storeMessage(message.message)).endCell())
         }
-        this.messagesCell = beBra.endCell()
+        this.messagesCell = b.endCell()
     }
 
     public addSignature (ownerId: number, secretKey: Buffer) {

@@ -67,26 +67,25 @@ export class MultisigWallet {
     }
 
     public sendOrder (client: TonClient, order: Order, secretKey: Buffer) {
-        let sugoma = beginCell()
+        let signedMessages = beginCell()
             .storeDict(order.signatures, Dictionary.Keys.Uint(8), Dictionary.Values.Buffer(64))
             .storeBuffer(order.messagesCell.hash())
             .storeSlice(order.messagesCell.asSlice())
         .endCell()
         let publicKey: Buffer = keyPairFromSecretKey(secretKey).publicKey
         let ownerId: number = this.getOwnerIdByPubkey(publicKey)
-        let amogus = beginCell()
+        let signedMessagesWithRoot = beginCell()
             .storeUint(ownerId, 8)
             .storeBit(0)
             .storeUint(this.walletId, 32)
-            .storeSlice(sugoma.asSlice())
-            .endCell()
-        let suspect = beginCell()
-            .storeBuffer(sign(amogus.hash(), secretKey))
-            .storeSlice(amogus.asSlice())
-            .endCell()
+            .storeSlice(signedMessages.asSlice())
+        .endCell()
+        let rootSignedMessages = beginCell()
+            .storeBuffer(sign(signedMessagesWithRoot.hash(), secretKey))
+            .storeSlice(signedMessagesWithRoot.asSlice())
+        .endCell()
         
-        
-        let message: Message = external({ body: suspect, to: this.address })
+        let message: Message = external({ body: rootSignedMessages, to: this.address })
         client.sendMessage(message)
     }
     
