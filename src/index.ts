@@ -1,2 +1,2 @@
-export Order from './Order'
-export MultisigWallet from './MultisigWallet'
+export { Order } from './Order'
+export { MultisigWallet } from './MultisigWallet'

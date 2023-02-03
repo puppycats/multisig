@@ -13,7 +13,7 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 - `k` - number of signatures required to confirm a transaction
 
 #### Properties
-- `publicKeys` - array of public keys of the wallet owners
+- `owners` - `Dictionary<number, Buffer>` of signatures *ownerId => signature*
 - `workchain` - workchain where the wallet is deployed
 - `walletId` - wallet id
 - `k` - number of signatures required to confirm a transaction
