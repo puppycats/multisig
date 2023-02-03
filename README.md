@@ -26,7 +26,7 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 Deploy this MutlisigWallet via external message
 
 >deployInternal
-`deployInternal (sender: Sender, value: bigint = 1000000000n): void`
+`deployInternal (sender: Sender, value: bigint): void`
  - `sender` - `Sender` instance
  - `value` - value in nanoTons for deploy message
 Deploy this MultisigWallet via internal message
