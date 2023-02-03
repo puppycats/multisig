@@ -1,2 +1,2 @@
-export * from './Order'
-export * from './MultisigWallet'
+export Order from './Order'
+export MultisigWallet from './MultisigWallet'
