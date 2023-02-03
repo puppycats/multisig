@@ -50,7 +50,7 @@ export class MultisigWallet {
         return new MultisigWallet(publicKeys, address.workChain, walletId, k)
     }
 
-    public formStateInit (): StateInit {
+    private formStateInit (): StateInit {
         const data: Cell = beginCell()
             .storeUint(this.walletId, 32)
             .storeUint(this.owners.size, 8)

@@ -20,7 +20,18 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 - `address` - wallet address
 
 #### Methods
->SendOrder
+>deployExternal
+`deployExternal (client: TonClient): void`
+ - `client` - `TonClient` instance
+Deploy this MutlisigWallet via external message
+
+>deployInternal
+`deployInternal (sender: Sender, value: bigint = 1000000000n): void`
+ - `sender` - `Sender` instance
+ - `value` - value in nanoTons for deploy message
+Deploy this MultisigWallet via internal message
+
+>sendOrder
 `sendOrder (order: Order, secretKey: Buffer): void`
 - `order` - order to send signed by owners
 - `secretKey` - secret key of the sender (to rootsign the order)
