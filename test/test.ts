@@ -102,4 +102,11 @@ describe('MultisigWallet', () => {
         expect(multisig.owners.keys().toString()).to.be.equal(multisigFromProvider.owners.keys().toString())
         expect(multisig.owners.values().toString()).to.be.equal(multisigFromProvider.owners.values().toString())
     })
+
+    it('should find order by public key', () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
+        for (let i = 0; i < publicKeys.length; i += 1) {
+            expect(multisig.getOwnerIdByPubkey(publicKeys[i])).to.be.equal(i)
+        }
+    })
 })
