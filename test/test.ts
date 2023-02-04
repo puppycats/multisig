@@ -35,12 +35,67 @@ function createInternalMessageWithMode (bounce: boolean, dest: Address, value: b
 }
 
 describe('Order', () => {
+    var publicKeys: Buffer[]
+    var secretKeys: Buffer[]
+
+    before(async () => {
+        publicKeys = []
+        secretKeys = []
+        for (let i = 0; i < 10; i += 1) {
+            let kp = keyPairFromSeed(await getSecureRandomBytes(32))
+            publicKeys.push(kp.publicKey)
+            secretKeys.push(kp.secretKey)
+        }
+    })
+
     it('should add messages', () => {
         let order = new Order()
         order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
         order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
         order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
         expect(order.messages).to.have.lengthOf(3)
+    })
+
+    it('should add signatures', () => {
+        let order = new Order()
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        order.addSignature(1, secretKeys[0])
+        order.addSignature(2, secretKeys[1])
+        order.addSignature(3, secretKeys[2])
+        expect(order.signatures.size).to.equal(3)
+    })
+
+    it('should union signatures', () => {
+        let order1 = new Order()
+        order1.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
+        order1.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
+        order1.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        order1.addSignature(1, secretKeys[0])
+        order1.addSignature(2, secretKeys[1])
+        order1.addSignature(3, secretKeys[2])
+        let order2 = new Order()
+        order2.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
+        order2.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
+        order2.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        order2.addSignature(4, secretKeys[3])
+        order2.addSignature(3, secretKeys[2])
+        order2.addSignature(6, secretKeys[5])
+        order1.unionSignatures(order2)
+        expect(order1.signatures.size).to.equal(5)
+    })
+
+    it('should clear signatures', () => {
+        let order = new Order()
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        order.addSignature(1, secretKeys[0])
+        order.addSignature(2, secretKeys[1])
+        order.addSignature(3, secretKeys[2])
+        order.clearSignatures()
+        expect(order.signatures.size).to.equal(0)
     })
 })
 

@@ -1,6 +1,6 @@
 import { sign } from 'ton-crypto'
 import { MessageWithMode } from './types'
-import { beginCell, Builder, Cell, Dictionary, storeMessage, storeMessageRelaxed } from 'ton-core'
+import { beginCell, Builder, Cell, Dictionary, storeMessageRelaxed } from 'ton-core'
 
 export class Order {
     public messages: MessageWithMode[]
