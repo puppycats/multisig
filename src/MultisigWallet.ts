@@ -23,8 +23,14 @@ export class MultisigWallet {
         this.address = contractAddress(workchain, this.formStateInit())
     }
     
-    static async fromAddress (client: TonClient, address: Address): Promise<MultisigWallet> {
-        const contractState = await client.getContractState(address)
+    static async fromAddress (address: Address, provider?: ContractProvider, client?: TonClient): Promise<MultisigWallet> {
+        if (!provider) {
+            if (!client) throw('Either provider or client must be specified')
+            provider = client.provider(address, { code: null, data: null })
+        }
+
+        const contractState = (await provider.getState()).state
+        if (contractState.type !== 'active') throw('Contract must be active')
         const data: Slice = Cell.fromBoc(contractState.data!)[0].beginParse()
         const walletId: number = data.loadUint(32)
         data.skip(8)
@@ -33,7 +39,7 @@ export class MultisigWallet {
         const owners = data.loadDict(Dictionary.Keys.Uint(8), Dictionary.Values.Cell())
         let publicKeys: Buffer[] = []
         for (const [key, value] of owners) {
-            const publicKey = value.beginParse().loadBuffer(64)
+            const publicKey = value.beginParse().loadBuffer(32)
             publicKeys.push(publicKey)
         }
         return new MultisigWallet(publicKeys, address.workChain, walletId, k)
@@ -103,7 +109,7 @@ export class MultisigWallet {
     
     public getOwnerIdByPubkey (publicKey: Buffer) {
         for (const [key, value] of this.owners) {
-            if (value.beginParse().loadBuffer(64).equals(publicKey)) {
+            if (value.beginParse().loadBuffer(32).equals(publicKey)) {
                 return key
             }
         }

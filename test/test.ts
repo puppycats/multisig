@@ -90,4 +90,16 @@ describe('MultisigWallet', () => {
         expect(txs).to.have.lengthOf(2)
         expect(txs[1].endStatus).to.equal('active')
     })
+
+    it('should load contract from address', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
+        let provider = createProvider(multisig)
+        await multisig.deployInternal(treasure)
+        await system.run()
+
+        let multisigFromProvider = await MultisigWallet.fromAddress(multisig.address, provider)
+        expect(multisig.address.toRawString()).to.be.equal(multisigFromProvider.address.toRawString())
+        expect(multisig.owners.keys().toString()).to.be.equal(multisigFromProvider.owners.keys().toString())
+        expect(multisig.owners.values().toString()).to.be.equal(multisigFromProvider.owners.values().toString())
+    })
 })

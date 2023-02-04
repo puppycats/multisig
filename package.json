@@ -16,6 +16,6 @@
   },
   "scripts": {
     "build": "yarn tsc --build",
-    "test": "yarn build && mocha dist/test/test.js"
+    "test": "yarn build --force && mocha dist/test/test.js"
   }
 }
