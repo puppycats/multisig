@@ -123,4 +123,25 @@ describe('MultisigWallet', () => {
         await multisig.sendOrder(provider, order, secretKeys[3])
         let txs = await system.run()
     })
+
+    it('should accept multiple orders and send messages', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 5)
+        let provider = createProvider(multisig)
+        await multisig.deployInternal(treasure, 10000000000n)
+        await system.run()
+
+        let order = new Order()
+        order.addMessage(createInternalMessageWithMode(false, testAddress('address1'), 1000000000n, Cell.EMPTY))
+        order.addMessage(createInternalMessageWithMode(false, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+
+        for (let i = 0; i < 4; i += 1) {
+            await multisig.sendOrder(provider, order, secretKeys[i])
+            await system.run()
+        }
+
+        await multisig.sendOrder(provider, order, secretKeys[7])
+        let txs = await system.run()
+        expect(txs).to.have.lengthOf(5)
+    })
 })
