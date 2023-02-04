@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { beginCell, Cell, Address, CommonMessageInfoInternal, Contract, ContractProvider } from 'ton-core'
+import { beginCell, Cell, Address, ContractProvider, CommonMessageInfoRelaxed } from 'ton-core'
 import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto'
 import { testAddress } from 'ton-emulator'
 import { ContractSystem } from 'ton-emulator/dist/emulator/ContractSystem'
@@ -7,7 +7,7 @@ import { Treasure } from 'ton-emulator/dist/treasure/Treasure'
 import { MessageWithMode } from '../src/types'
 import { Order, MultisigWallet } from './../src/index'
 
-function createCommonMessageInfoInternal (bounce: boolean, dest: Address, value: bigint): CommonMessageInfoInternal {
+function createCommonMessageInfoInternal (bounce: boolean, dest: Address, value: bigint): CommonMessageInfoRelaxed {
     return {
         bounce,
         bounced: false,
@@ -17,7 +17,6 @@ function createCommonMessageInfoInternal (bounce: boolean, dest: Address, value:
         forwardFee: 0n,
         ihrDisabled: true,
         ihrFee: 0n,
-        src: Address.parse('EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c'),
         type: 'internal',
         value: {
             coins: value
@@ -108,5 +107,20 @@ describe('MultisigWallet', () => {
         for (let i = 0; i < publicKeys.length; i += 1) {
             expect(multisig.getOwnerIdByPubkey(publicKeys[i])).to.be.equal(i)
         }
+    })
+
+    it('should accept orders', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
+        let provider = createProvider(multisig)
+        await multisig.deployInternal(treasure, 10000000000n)
+        await system.run()
+
+        let order = new Order()
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
+        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+
+        await multisig.sendOrder(provider, order, secretKeys[3])
+        let txs = await system.run()
     })
 })

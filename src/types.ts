@@ -1,6 +1,6 @@
-import { Message } from "ton-core"
+import { MessageRelaxed } from "ton-core"
 
 export type MessageWithMode = {
-    message: Message
+    message: MessageRelaxed
     mode: number
 }

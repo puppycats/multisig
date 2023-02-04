@@ -1,6 +1,6 @@
 import { sign } from 'ton-crypto'
 import { MessageWithMode } from './types'
-import { beginCell, Builder, Cell, Dictionary, storeMessage } from 'ton-core'
+import { beginCell, Builder, Cell, Dictionary, storeMessage, storeMessageRelaxed } from 'ton-core'
 
 export class Order {
     public messages: MessageWithMode[]
@@ -21,7 +21,7 @@ export class Order {
         let b: Builder = beginCell().storeUint(this.getQuerryId(), 64)
         for (const message of this.messages) {
             b.storeUint(message.mode, 8)
-            b.storeRef(beginCell().store(storeMessage(message.message)).endCell())
+            b.storeRef(beginCell().store(storeMessageRelaxed(message.message)).endCell())
         }
         this.messagesCell = b.endCell()
     }
