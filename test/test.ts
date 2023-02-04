@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+import { TonClient } from 'ton'
 import { beginCell, Cell, Address, ContractProvider, CommonMessageInfoRelaxed } from 'ton-core'
 import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto'
 import { testAddress } from 'ton-emulator'
@@ -6,6 +7,13 @@ import { ContractSystem } from 'ton-emulator/dist/emulator/ContractSystem'
 import { Treasure } from 'ton-emulator/dist/treasure/Treasure'
 import { MessageWithMode } from '../src/types'
 import { Order, MultisigWallet } from './../src/index'
+
+function createTestClient (net?: 'testnet' | 'mainnet') {
+    return new TonClient({
+        endpoint: net === 'mainnet' ? 'https://mainnet.tonhubapi.com/jsonRPC' : 'https://testnet.toncenter.com/api/v2/jsonRPC',
+        apiKey: net !== 'mainnet' ? '32df40f4ffc11053334bcdf09c7d3a9e6487ee0cb715edf8cf667c543edb10ca' : undefined
+    });
+}
 
 function createCommonMessageInfoInternal (bounce: boolean, dest: Address, value: bigint): CommonMessageInfoRelaxed {
     return {
@@ -145,16 +153,37 @@ describe('MultisigWallet', () => {
         expect(txs[1].endStatus).to.equal('active')
     })
 
+    it('should deploy via external message', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
+        let provider = createProvider(multisig)
+        
+        /*await multisig.deployExternal(toncl)
+        let txs = await system.run()
+        console.log(txs)
+        //expect(txs).to.have.lengthOf(2)
+        //expect(txs[1].endStatus).to.equal('active')*/
+    })
+
     it('should load contract from address', async () => {
         let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
         let provider = createProvider(multisig)
         await multisig.deployInternal(treasure)
         await system.run()
 
-        let multisigFromProvider = await MultisigWallet.fromAddress(multisig.address, provider)
+        let multisigFromProvider = await MultisigWallet.fromAddress(multisig.address, { provider })
         expect(multisig.address.toRawString()).to.be.equal(multisigFromProvider.address.toRawString())
         expect(multisig.owners.keys().toString()).to.be.equal(multisigFromProvider.owners.keys().toString())
         expect(multisig.owners.values().toString()).to.be.equal(multisigFromProvider.owners.values().toString())
+
+        const testMultisigAddress = Address.parse('EQADBXugwmn4YvWsQizHdWGgfCTN_s3qFP0Ae0pzkU-jwzoE')
+        let multisigFromClient = await MultisigWallet.fromAddress(testMultisigAddress, { client: createTestClient('mainnet') })
+        expect(testMultisigAddress.toRawString()).to.be.equal(multisigFromClient.address.toRawString())
+        expect(multisigFromClient.owners.keys().toString()).to.be.equal('0,1,2')
+        expect(multisigFromClient.owners.values().toString()).to.be.equal([
+            Buffer.from('51ce50ebcced0fdcc7520a2cacf653c81fb49f34f9c570a9e1bb23c7f7186d8d00', 'hex'),
+            Buffer.from('f7a92e5a7b97b81fdc366c4c77298cfd1e9b97ba04feecf0c1d85d63d16d9f2000', 'hex'),
+            Buffer.from('6ec29f8fd53761b94291d5801cda5d0d00c48d78dc6c147ec4c6e088c3d93d8400', 'hex')
+        ].toString())
     })
 
     it('should find order by public key', () => {

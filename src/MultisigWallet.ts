@@ -12,7 +12,7 @@ export class MultisigWallet {
     public k: number
     public address: Address
 
-    constructor (publicKeys: Buffer[], workchain: number, walletId: number, k: number) {
+    constructor (publicKeys: Buffer[], workchain: number, walletId: number, k: number, forceAddress?: Address) {
         this.owners = Dictionary.empty()
         this.workchain = workchain
         this.walletId = walletId
@@ -20,17 +20,24 @@ export class MultisigWallet {
         for (let i = 0; i < publicKeys.length; i += 1) {
             this.owners.set(i, Buffer.concat([publicKeys[i], Buffer.alloc(1)]))
         }
-        this.address = contractAddress(workchain, this.formStateInit())
+        this.address = forceAddress || contractAddress(workchain, this.formStateInit())
     }
     
-    static async fromAddress (address: Address, provider?: ContractProvider, client?: TonClient): Promise<MultisigWallet> {
-        if (!provider) {
-            if (!client) throw('Either provider or client must be specified')
-            provider = client.provider(address, { code: null, data: null })
+    static async fromAddress (address: Address, opts: {
+        provider?: ContractProvider,
+        client?: TonClient
+    }): Promise<MultisigWallet> {
+        let provider: ContractProvider
+        if (opts.provider) {
+            provider = opts.provider
+        } else {
+            if (!opts.client) throw('Either provider or client must be specified')
+            provider = opts.client.provider(address, { code: null, data: null })
         }
 
         const contractState = (await provider.getState()).state
         if (contractState.type !== 'active') throw('Contract must be active')
+
         const data: Slice = Cell.fromBoc(contractState.data!)[0].beginParse()
         const walletId: number = data.loadUint(32)
         data.skip(8)
@@ -42,7 +49,8 @@ export class MultisigWallet {
             const publicKey = value.subarray(0, 32)
             publicKeys.push(publicKey)
         }
-        return new MultisigWallet(publicKeys, address.workChain, walletId, k)
+
+        return new MultisigWallet(publicKeys, address.workChain, walletId, k, address)
     }
 
     public formStateInit (): StateInit {
@@ -59,8 +67,8 @@ export class MultisigWallet {
         }
     }
 
-    public async deployExternal (provider: ContractProvider) {
-        const msg: Message = {
+    public async deployExternal (client: TonClient) {
+        await client.sendMessage({
             info: {
                 dest: this.address,
                 importFee: 0n,
@@ -68,8 +76,7 @@ export class MultisigWallet {
             },
             init: this.formStateInit(),
             body: Cell.EMPTY
-        }
-        await provider.external(beginCell().store(storeMessage(msg)).endCell())
+        })
     }
 
     public async deployInternal (sender: Sender, value: bigint = 1000000000n) {

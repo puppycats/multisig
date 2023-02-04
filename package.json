@@ -15,7 +15,7 @@
     "ton-emulator": "^2.1.1"
   },
   "scripts": {
-    "build": "yarn tsc --build",
-    "test": "yarn build --force && mocha dist/test/test.js"
+    "build": "yarn tsc --build --clean && yarn tsc --build",
+    "test": "yarn build && mocha dist/test/test.js"
   }
 }
