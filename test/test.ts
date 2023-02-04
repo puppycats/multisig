@@ -153,17 +153,6 @@ describe('MultisigWallet', () => {
         expect(txs[1].endStatus).to.equal('active')
     })
 
-    it('should deploy via external message', async () => {
-        let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
-        let provider = createProvider(multisig)
-        
-        /*await multisig.deployExternal(toncl)
-        let txs = await system.run()
-        console.log(txs)
-        //expect(txs).to.have.lengthOf(2)
-        //expect(txs[1].endStatus).to.equal('active')*/
-    })
-
     it('should load contract from address', async () => {
         let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
         let provider = createProvider(multisig)
