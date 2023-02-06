@@ -153,6 +153,24 @@ describe('MultisigWallet', () => {
         expect(txs[1].endStatus).to.equal('active')
     })
 
+    it('should deploy via external message', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
+        let provider = createProvider(multisig)
+        
+        await treasure.send({
+            sendMode: 0,
+            to: multisig.address,
+            value: 1000000000n,
+            body: Cell.EMPTY,
+            bounce: false
+        })
+        await system.run()
+        await multisig.deployExternal(provider)
+        let txs = await system.run()
+        expect(txs).to.have.lengthOf(1)
+        expect(txs[0].endStatus).to.equal('active')
+    })
+
     it('should load contract from address', async () => {
         let multisig = new MultisigWallet(publicKeys, 0, 123, 2)
         let provider = createProvider(multisig)
@@ -164,8 +182,10 @@ describe('MultisigWallet', () => {
         expect(multisig.owners.keys().toString()).to.be.equal(multisigFromProvider.owners.keys().toString())
         expect(multisig.owners.values().toString()).to.be.equal(multisigFromProvider.owners.values().toString())
 
+        const client = createTestClient('mainnet')
+
         const testMultisigAddress = Address.parse('EQADBXugwmn4YvWsQizHdWGgfCTN_s3qFP0Ae0pzkU-jwzoE')
-        let multisigFromClient = await MultisigWallet.fromAddress(testMultisigAddress, { client: createTestClient('mainnet') })
+        let multisigFromClient = await MultisigWallet.fromAddress(testMultisigAddress, { client })
         expect(testMultisigAddress.toRawString()).to.be.equal(multisigFromClient.address.toRawString())
         expect(multisigFromClient.owners.keys().toString()).to.be.equal('0,1,2')
         expect(multisigFromClient.owners.values().toString()).to.be.equal([
@@ -193,7 +213,7 @@ describe('MultisigWallet', () => {
         order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
         order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
 
-        await multisig.sendOrder(provider, order, secretKeys[3])
+        await multisig.sendOrder(order, secretKeys[3], provider)
         let txs = await system.run()
     })
 
@@ -209,11 +229,11 @@ describe('MultisigWallet', () => {
         order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
 
         for (let i = 0; i < 4; i += 1) {
-            await multisig.sendOrder(provider, order, secretKeys[i])
+            await multisig.sendOrder(order, secretKeys[i], provider)
             await system.run()
         }
 
-        await multisig.sendOrder(provider, order, secretKeys[7])
+        await multisig.sendOrder(order, secretKeys[7], provider)
         let txs = await system.run()
         expect(txs).to.have.lengthOf(5)
     })

@@ -11,8 +11,13 @@ export class MultisigWallet {
     public walletId: number
     public k: number
     public address: Address
+    public provider: ContractProvider | null = null
 
-    constructor (publicKeys: Buffer[], workchain: number, walletId: number, k: number, forceAddress?: Address) {
+    constructor (publicKeys: Buffer[], workchain: number, walletId: number, k: number, opts?: {
+        address?: Address,
+        provider?: ContractProvider,
+        client?: TonClient
+    }) {
         this.owners = Dictionary.empty()
         this.workchain = workchain
         this.walletId = walletId
@@ -20,7 +25,13 @@ export class MultisigWallet {
         for (let i = 0; i < publicKeys.length; i += 1) {
             this.owners.set(i, Buffer.concat([publicKeys[i], Buffer.alloc(1)]))
         }
-        this.address = forceAddress || contractAddress(workchain, this.formStateInit())
+        const stateInit = this.formStateInit()
+        this.address = opts?.address || contractAddress(workchain, stateInit)
+        if (opts?.provider) {
+            this.provider = opts.provider
+        } else if (opts?.client) {
+            this.provider = opts.client.provider(this.address, { code: stateInit.code!, data: stateInit.data! })
+        }
     }
     
     static async fromAddress (address: Address, opts: {
@@ -50,7 +61,7 @@ export class MultisigWallet {
             publicKeys.push(publicKey)
         }
 
-        return new MultisigWallet(publicKeys, address.workChain, walletId, k, address)
+        return new MultisigWallet(publicKeys, address.workChain, walletId, k, { address, provider, client: opts.client })
     }
 
     public formStateInit (): StateInit {
@@ -67,16 +78,12 @@ export class MultisigWallet {
         }
     }
 
-    public async deployExternal (client: TonClient) {
-        await client.sendMessage({
-            info: {
-                dest: this.address,
-                importFee: 0n,
-                type: 'external-in'
-            },
-            init: this.formStateInit(),
-            body: Cell.EMPTY
-        })
+    public async deployExternal (provider?: ContractProvider) {
+        if (!provider && !this.provider) throw('you must specify provider if there is no such property in MultisigWallet instance')
+        if (!provider) {
+            provider = this.provider!
+        }
+        await provider.external(Cell.EMPTY)
     }
 
     public async deployInternal (sender: Sender, value: bigint = 1000000000n) {
@@ -90,7 +97,12 @@ export class MultisigWallet {
         })
     }
 
-    public async sendOrder (provider: ContractProvider, order: Order, secretKey: Buffer) {
+    public async sendOrder (order: Order, secretKey: Buffer, provider?: ContractProvider) {
+        if (!provider && !this.provider) throw('you must specify provider if there is no such property in MultisigWallet instance')
+        if (!provider) {
+            provider = this.provider!
+        }
+
         let publicKey: Buffer = keyPairFromSecretKey(secretKey).publicKey
         let ownerId: number = this.getOwnerIdByPubkey(publicKey)
 
