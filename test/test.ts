@@ -1,11 +1,10 @@
 import { expect } from 'chai'
 import { TonClient } from 'ton'
-import { beginCell, Cell, Address, ContractProvider, CommonMessageInfoRelaxed } from 'ton-core'
+import { beginCell, Cell, Address, ContractProvider, CommonMessageInfoRelaxed, MessageRelaxed } from 'ton-core'
 import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto'
 import { testAddress } from 'ton-emulator'
 import { ContractSystem } from 'ton-emulator/dist/emulator/ContractSystem'
 import { Treasure } from 'ton-emulator/dist/treasure/Treasure'
-import { MessageWithMode } from '../src/types'
 import { Order, MultisigWallet } from './../src/index'
 
 function createTestClient (net?: 'testnet' | 'mainnet') {
@@ -32,13 +31,10 @@ function createCommonMessageInfoInternal (bounce: boolean, dest: Address, value:
     }
 }
 
-function createInternalMessageWithMode (bounce: boolean, dest: Address, value: bigint, body: Cell, mode: number = 3): MessageWithMode {
+function createInternalMessage (bounce: boolean, dest: Address, value: bigint, body: Cell, mode: number = 3): MessageRelaxed {
     return {
-        message: {
-            info: createCommonMessageInfoInternal(bounce, dest, value),
-            body
-        },
-        mode: mode
+        info: createCommonMessageInfoInternal(bounce, dest, value),
+        body
     }
 }
 
@@ -57,53 +53,53 @@ describe('Order', () => {
     })
 
     it('should add messages', () => {
-        let order = new Order()
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
-        expect(order.messages).to.have.lengthOf(3)
+        let order = new Order(123)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
+        expect(order.messages.endCell().refs.length).to.equal(3)
     })
 
     it('should add signatures', () => {
-        let order = new Order()
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        let order = new Order(123)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         order.addSignature(0, secretKeys[0])
         order.addSignature(1, secretKeys[1])
         order.addSignature(2, secretKeys[2])
-        expect(order.signatures.size).to.equal(3)
+        expect(Object.keys(order.signatures)).to.have.lengthOf(3)
     })
 
     it('should union signatures', () => {
-        let order1 = new Order()
-        order1.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
-        order1.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
-        order1.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        let order1 = new Order(123)
+        order1.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order1.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order1.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         order1.addSignature(0, secretKeys[0])
         order1.addSignature(1, secretKeys[1])
         order1.addSignature(2, secretKeys[2])
-        let order2 = new Order()
-        order2.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
-        order2.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
-        order2.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        let order2 = new Order(123)
+        order2.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order2.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order2.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         order2.addSignature(3, secretKeys[3])
         order2.addSignature(2, secretKeys[2])
         order2.addSignature(5, secretKeys[5])
         order1.unionSignatures(order2)
-        expect(order1.signatures.size).to.equal(5)
+        expect(Object.keys(order1.signatures)).to.have.lengthOf(5)
     })
 
     it('should clear signatures', () => {
-        let order = new Order()
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        let order = new Order(123)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         order.addSignature(0, secretKeys[0])
         order.addSignature(1, secretKeys[1])
         order.addSignature(2, secretKeys[2])
         order.clearSignatures()
-        expect(order.signatures.size).to.equal(0)
+        expect(order.signatures).to.be.empty
     })
 })
 
@@ -208,10 +204,10 @@ describe('MultisigWallet', () => {
         await multisig.deployInternal(treasure, 10000000000n)
         await system.run()
 
-        let order = new Order()
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 1000000000n, Cell.EMPTY))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        let order = new Order(123)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
 
         await multisig.sendOrder(order, secretKeys[3], provider)
         let txs = await system.run()
@@ -223,10 +219,10 @@ describe('MultisigWallet', () => {
         await multisig.deployInternal(treasure, 10000000000n)
         await system.run()
 
-        let order = new Order()
-        order.addMessage(createInternalMessageWithMode(false, testAddress('address1'), 1000000000n, Cell.EMPTY))
-        order.addMessage(createInternalMessageWithMode(false, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()))
-        order.addMessage(createInternalMessageWithMode(true, testAddress('address1'), 2000000000n, Cell.EMPTY))
+        let order = new Order(123)
+        order.addMessage(createInternalMessage(false, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order.addMessage(createInternalMessage(false, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
 
         for (let i = 0; i < 4; i += 1) {
             await multisig.sendOrder(order, secretKeys[i], provider)
@@ -234,6 +230,26 @@ describe('MultisigWallet', () => {
         }
 
         await multisig.sendOrder(order, secretKeys[7], provider)
+        let txs = await system.run()
+        expect(txs).to.have.lengthOf(5)
+    })
+
+    it('should accept orders with multiple signatures and send messages', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 5)
+        let provider = createProvider(multisig)
+        await multisig.deployInternal(treasure, 10000000000n)
+        await system.run()
+
+        let order = new Order(123)
+        order.addMessage(createInternalMessage(false, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order.addMessage(createInternalMessage(false, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
+
+        for (let i = 0; i < 5; i += 1) {
+            order.addSignature(i, secretKeys[i])
+        }
+
+        await multisig.sendOrder(order, secretKeys[0], provider)
         let txs = await system.run()
         expect(txs).to.have.lengthOf(5)
     })
