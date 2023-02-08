@@ -4,36 +4,13 @@ import { beginCell, Builder, MessageRelaxed, storeMessageRelaxed } from 'ton-cor
 export class Order {
     public messages: Builder = beginCell()
     public signatures: { [key: number]: Buffer } = {}
+    public queryId: bigint = 0n
     private walletId: number
     private queryOffset: number
-    private queryId: bigint = 0n
 
     constructor (walletId: number, offset?: number) {
         this.walletId = walletId
         this.queryOffset = offset || 7200
-    }
-
-    private formSignaturesBuilder () {
-        let b = beginCell().storeBit(0)
-        for (const ownerId in this.signatures) {
-            const signature = this.signatures[ownerId]
-            b = beginCell()
-                .storeBit(1)
-                .storeRef(beginCell()
-                    .storeBuffer(signature)
-                    .storeUint(parseInt(ownerId), 8)
-                    .storeBuilder(b)
-                .endCell())
-        }
-        return b
-    }
-
-    public finishBuilder () {
-        return beginCell()
-            .storeBuilder(this.formSignaturesBuilder())
-            .storeUint(this.walletId, 32)
-            .storeUint(this.queryId, 64)
-            .storeBuilder(this.messages)
     }
 
     public addMessage (message: MessageRelaxed, mode: number) {

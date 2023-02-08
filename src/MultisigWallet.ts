@@ -92,9 +92,24 @@ export class MultisigWallet {
         let publicKey: Buffer = keyPairFromSecretKey(secretKey).publicKey
         let ownerId: number = this.getOwnerIdByPubkey(publicKey)
         
+        let b = beginCell().storeBit(0)
+        for (const ownerId in order.signatures) {
+            const signature = order.signatures[ownerId]
+            b = beginCell()
+                .storeBit(1)
+                .storeRef(beginCell()
+                    .storeBuffer(signature)
+                    .storeUint(parseInt(ownerId), 8)
+                    .storeBuilder(b)
+                .endCell())
+        }
+
         let cell = beginCell()
             .storeUint(ownerId, 8)
-            .storeBuilder(order.finishBuilder())
+            .storeBuilder(b)
+            .storeUint(this.walletId, 32)
+            .storeUint(order.queryId, 64)
+            .storeBuilder(order.messages)
         .endCell()
         
         let signature = sign(cell.hash(), secretKey)
