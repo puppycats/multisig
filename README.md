@@ -31,10 +31,6 @@ Deploy this `MutlisigWallet` via external message
  - `value` - value in nanoTons for deploy message
 Deploy this `MultisigWallet` via internal message
 
->formStateInit
-`formStateInit (): StateInit`
-Form `StateInit` for this `MultisigWallet`
-
 >sendOrder
 `sendOrder (order: Order, secretKey: Buffer): void`
 - `order` - order to send signed by owners

@@ -64,20 +64,6 @@ export class MultisigWallet {
         return new MultisigWallet(publicKeys, address.workChain, walletId, k, { address, provider, client: opts.client })
     }
 
-    public formStateInit (): StateInit {
-        return {
-            code: MULTISIG_CODE,
-            data: beginCell()
-                .storeUint(this.walletId, 32)
-                .storeUint(this.owners.size, 8)
-                .storeUint(this.k, 8)
-                .storeUint(0, 64)
-                .storeDict(this.owners, Dictionary.Keys.Uint(8), Dictionary.Values.Buffer(33))
-                .storeBit(0)
-            .endCell()
-        }
-    }
-
     public async deployExternal (provider?: ContractProvider) {
         if (!provider && !this.provider) throw('you must specify provider if there is no such property in MultisigWallet instance')
         if (!provider) {
@@ -85,7 +71,7 @@ export class MultisigWallet {
         }
         await provider.external(Cell.EMPTY)
     }
-
+    
     public async deployInternal (sender: Sender, value: bigint = 1000000000n) {
         await sender.send({
             sendMode: 0,
@@ -102,19 +88,19 @@ export class MultisigWallet {
         if (!provider) {
             provider = this.provider!
         }
-
+        
         let publicKey: Buffer = keyPairFromSecretKey(secretKey).publicKey
         let ownerId: number = this.getOwnerIdByPubkey(publicKey)
-
+        
         let cell = beginCell()
             .storeUint(ownerId, 8)
             .storeBuilder(order.finishBuilder())
         .endCell()
-
+        
         let signature = sign(cell.hash(), secretKey)
         cell = beginCell()
-            .storeBuffer(signature)
-            .storeSlice(cell.asSlice())
+        .storeBuffer(signature)
+        .storeSlice(cell.asSlice())
         .endCell()
         
         await provider.external(cell)
@@ -127,5 +113,19 @@ export class MultisigWallet {
             }
         }
         throw('public key is not an owner')
+    }
+
+    public formStateInit (): StateInit {
+        return {
+            code: MULTISIG_CODE,
+            data: beginCell()
+                .storeUint(this.walletId, 32)
+                .storeUint(this.owners.size, 8)
+                .storeUint(this.k, 8)
+                .storeUint(0, 64)
+                .storeDict(this.owners, Dictionary.Keys.Uint(8), Dictionary.Values.Buffer(33))
+                .storeBit(0)
+            .endCell()
+        }
     }
 }
