@@ -1,46 +1,89 @@
-import { TonClient, WalletContractV4 } from "ton"
-import { mnemonicToPrivateKey } from "ton-crypto"
+import { Address, beginCell, Cell, fromNano, MessageRelaxed, TonClient, WalletContractV4 } from "ton"
+import { getHttpEndpoint } from "@orbs-network/ton-access"
+import { KeyPair, mnemonicToPrivateKey } from "ton-crypto"
 import { MultisigWallet } from "./MultisigWallet"
 import { Order } from "./Order"
 
-async function main() {
-    const client = new TonClient({
-        endpoint: 'https://toncenter.com/api/v2/jsonRPC'
-    })
+async function main(mnemonics: string[][]) {
+    const endpoint = await getHttpEndpoint()
+    const client = new TonClient({ endpoint })
   
-    let keyPairs = []
+    let keyPairs: KeyPair[] = []
 
-    for (let i = 0; i < mnemonics.length; i++) {
-        keyPairs[i] = await mnemonicToPrivateKey(mnemonics[i])
-    }
+    for (let i = 0; i < mnemonics.length; i++) keyPairs[i] = await mnemonicToPrivateKey(mnemonics[i])
 
-    console.log(keyPairs)
-
-
+    
     //How to create new multisig object
-    let pk1 = [keyPairs[0].publicKey, keyPairs[1].publicKey]
+    let pk1: Buffer[] = [keyPairs[0].publicKey, keyPairs[1].publicKey]
 
-    let mw1 = new MultisigWallet(pk1, 0, 0, 1, { client })
+    let mw1: MultisigWallet = new MultisigWallet(pk1, 0, 0, 1, { client })
 
-    let wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[0].publicKey });
+    let wallet: WalletContractV4 = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[0].publicKey });
+    let walletReal: WalletContractV4 = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[4].publicKey });
 
     //How to deploy multisig wallet via internal message
-    await mw1.deployInternal(wallet.sender(client.provider(wallet.address, null), keyPairs[0].secretKey))
-    //end
+    await mw1.deployInternal(walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey))
+    //console.log(wallet.address)
+    return
 
     //How to deploy multisig wallet via external message
-    await mw1.deployExternal()
-    //end
+    //await mw1.deployExternal()
+
 
     //How to get multisig wallet address
-    let addr = mw1.address
+    let addr: Address = mw1.address
+
 
     //How to get multisig wallet from address
-    let mw2 = await MultisigWallet.fromAddress(addr, { client })
+    let mw2: MultisigWallet = await MultisigWallet.fromAddress(addr, { client })
+
 
     //how to create order
-    let order1 = new Order()
-    //TODO
+    let order1: Order = new Order(0)
+
+
+    //How to add message to order
+    let msg: MessageRelaxed = {
+        body: beginCell().storeBuffer(Buffer.from('Hello, world!')).endCell(),
+        info: {
+            bounce: true,
+            bounced: false,
+            createdAt: 0,
+            createdLt: 0n,
+            dest: Address.parse('EQArzP5prfRJtDM5WrMNWyr9yUTAi0c9o6PfR4hkWy9UQXHx'),
+            forwardFee: 0n,
+            ihrDisabled: true,
+            ihrFee: 0n,
+            type: "internal",
+            value: {coins: BigInt(10 * 10^9)} //1 TON == 1e9 nanoTON
+        }
+    }
+
+    order1.addMessage(msg, 0)
+
+
+    //How to add signature to order
+    order1.addSignature(0, keyPairs[0].secretKey)
+
+
+    //How to union signatures
+    //First create another order
+    let order2: Order = new Order(0)
+    //Add any message to order
+    order2.addMessage(msg, 0)
+    //Add signature to order
+    order2.addSignature(1, keyPairs[1].secretKey)
+    //Union signatures
+    order1.unionSignatures(order2)
+
+
+    //How to clear signatures in order
+    order2.clearSignatures()
+
+
+    //How to clear message in order
+    order2.clearMessage()
+    
 
     //How to send order
     await mw2.sendOrder(order1, keyPairs[0].secretKey)
@@ -85,6 +128,16 @@ let mnemonics = [[
     'sight', 'limb',    'wrap',
     'pair',  'mule',    'wet',
     'jeans', 'mention', 'seek'
+],
+[
+    'country',  'pipe',     'guitar',
+    'primary',  'angle',    'helmet',
+    'edge',     'penalty',  'risk',
+    'pottery',  'music',    'plate',
+    'room',     'raw',      'involve',
+    'insect',   'casual',   'detect',
+    'citizen',  'quantum',  'cart',
+    'slight',   'tongue',   'multiply'
 ]]
 
-main()
+main(mnemonics)
