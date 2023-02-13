@@ -1,8 +1,9 @@
-import { Address, beginCell, Cell, fromNano, MessageRelaxed, TonClient, WalletContractV4 } from "ton"
+import { Address, beginCell, Cell, fromNano, MessageRelaxed, Sender, TonClient, WalletContractV4 } from "ton"
 import { getHttpEndpoint } from "@orbs-network/ton-access"
-import { KeyPair, mnemonicToPrivateKey } from "ton-crypto"
+import { KeyPair, mnemonicNew, mnemonicToPrivateKey, mnemonicToWalletKey } from "ton-crypto"
 import { MultisigWallet } from "./MultisigWallet"
 import { Order } from "./Order"
+import { Console } from "console"
 
 async function main(mnemonics: string[][]) {
     const endpoint = await getHttpEndpoint()
@@ -12,18 +13,27 @@ async function main(mnemonics: string[][]) {
 
     for (let i = 0; i < mnemonics.length; i++) keyPairs[i] = await mnemonicToPrivateKey(mnemonics[i])
 
-    
     //How to create new multisig object
     let pk1: Buffer[] = [keyPairs[0].publicKey, keyPairs[1].publicKey]
 
     let mw1: MultisigWallet = new MultisigWallet(pk1, 0, 0, 1, { client })
 
-    let wallet: WalletContractV4 = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[0].publicKey });
-    let walletReal: WalletContractV4 = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[4].publicKey });
+    let wallet: WalletContractV4 = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[0].publicKey })
+    let walletReal: WalletContractV4 = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[4].publicKey })
+
+    let sender: Sender = walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey)
+    
+    await sender.send({
+        sendMode: 0,
+        to: Address.parse('EQCVhnX-s7B25k-Q0tl9CLhyGiOQ4KckYl0LwzNWa5vnHXb8'),
+        value: 100n,
+        body: Cell.EMPTY,
+        bounce: true
+    })
 
     //How to deploy multisig wallet via internal message
-    await mw1.deployInternal(walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey))
-    //console.log(wallet.address)
+    //await mw1.deployInternal(walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey))
+    console.log(wallet.address)
     return
 
     //How to deploy multisig wallet via external message
@@ -66,7 +76,7 @@ async function main(mnemonics: string[][]) {
     order1.addSignature(0, keyPairs[0].secretKey)
 
 
-    //How to union signatures
+    //How to union signatures 
     //First create another order
     let order2: Order = new Order(0)
     //Add any message to order
@@ -130,14 +140,14 @@ let mnemonics = [[
     'jeans', 'mention', 'seek'
 ],
 [
-    'country',  'pipe',     'guitar',
-    'primary',  'angle',    'helmet',
-    'edge',     'penalty',  'risk',
-    'pottery',  'music',    'plate',
-    'room',     'raw',      'involve',
-    'insect',   'casual',   'detect',
-    'citizen',  'quantum',  'cart',
-    'slight',   'tongue',   'multiply'
-]]
+    'guard',   'nurse',   'hip',
+    'heart',   'domain',  'sauce',
+    'stable',  'ritual',  'swear',
+    'exist',   'predict', 'enough',
+    'stool',   'sunny',   'exist',
+    'tilt',    'tiger',   'basic',
+    'head',    'pottery', 'swim',
+    'romance', 'box',     'enrich'
+  ]]
 
 main(mnemonics)
