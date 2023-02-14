@@ -1,4 +1,4 @@
-import { Address, beginCell, Cell, fromNano, MessageRelaxed, Sender, TonClient, WalletContractV4 } from "ton"
+import { Address, beginCell, Cell, fromNano, MessageRelaxed, Sender, toNano, TonClient, WalletContractV4 } from "ton"
 import { getHttpEndpoint } from "@orbs-network/ton-access"
 import { KeyPair, mnemonicNew, mnemonicToPrivateKey, mnemonicToWalletKey } from "ton-crypto"
 import { MultisigWallet } from "./MultisigWallet"
@@ -23,17 +23,19 @@ async function main(mnemonics: string[][]) {
 
     let sender: Sender = walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey)
     
+    /*
     await sender.send({
-        sendMode: 0,
+        sendMode: 3,
         to: Address.parse('EQCVhnX-s7B25k-Q0tl9CLhyGiOQ4KckYl0LwzNWa5vnHXb8'),
-        value: 100n,
+        value: toNano('0.01'),
         body: Cell.EMPTY,
         bounce: true
     })
+    */
 
     //How to deploy multisig wallet via internal message
-    //await mw1.deployInternal(walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey))
-    console.log(wallet.address)
+    await mw1.deployInternal(walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey), toNano('0.05'))
+    console.log(mw1.address)
     return
 
     //How to deploy multisig wallet via external message

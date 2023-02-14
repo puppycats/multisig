@@ -74,7 +74,7 @@ export class MultisigWallet {
     
     public async deployInternal (sender: Sender, value: bigint = 1000000000n) {
         await sender.send({
-            sendMode: 0,
+            sendMode: 3,
             to: this.address,
             value: value,
             init: this.formStateInit(),
