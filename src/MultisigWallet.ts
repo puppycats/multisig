@@ -114,8 +114,8 @@ export class MultisigWallet {
         
         let signature = sign(cell.hash(), secretKey)
         cell = beginCell()
-        .storeBuffer(signature)
-        .storeSlice(cell.asSlice())
+            .storeBuffer(signature)
+            .storeSlice(cell.asSlice())
         .endCell()
         
         await provider.external(cell)
