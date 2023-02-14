@@ -37,6 +37,7 @@ export class Order {
 
     public clearMessages () {
         this.messages = beginCell()
+        this.clearSignatures()
     }
 
     public clearSignatures () {
