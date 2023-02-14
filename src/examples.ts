@@ -1,9 +1,8 @@
-import { Address, beginCell, Cell, fromNano, MessageRelaxed, Sender, toNano, TonClient, WalletContractV4 } from "ton"
+import { Address, beginCell, MessageRelaxed, toNano, TonClient, WalletContractV4 } from "ton"
 import { getHttpEndpoint } from "@orbs-network/ton-access"
-import { KeyPair, mnemonicNew, mnemonicToPrivateKey, mnemonicToWalletKey } from "ton-crypto"
+import { KeyPair, mnemonicToPrivateKey } from "ton-crypto"
 import { MultisigWallet } from "./MultisigWallet"
 import { Order } from "./Order"
-import { Console } from "console"
 
 async function main(mnemonics: string[][]) {
     const endpoint = await getHttpEndpoint()
@@ -18,29 +17,14 @@ async function main(mnemonics: string[][]) {
 
     let mw1: MultisigWallet = new MultisigWallet(pk1, 0, 0, 1, { client })
 
-    let wallet: WalletContractV4 = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[0].publicKey })
     let walletReal: WalletContractV4 = WalletContractV4.create({ workchain: 0, publicKey: keyPairs[4].publicKey })
 
-    let sender: Sender = walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey)
-    
-    /*
-    await sender.send({
-        sendMode: 3,
-        to: Address.parse('EQCVhnX-s7B25k-Q0tl9CLhyGiOQ4KckYl0LwzNWa5vnHXb8'),
-        value: toNano('0.01'),
-        body: Cell.EMPTY,
-        bounce: true
-    })
-    */
 
     //How to deploy multisig wallet via internal message
     await mw1.deployInternal(walletReal.sender(client.provider(walletReal.address, null), keyPairs[4].secretKey), toNano('0.05'))
-    console.log(mw1.address)
-    return
 
     //How to deploy multisig wallet via external message
-    //await mw1.deployExternal()
-
+    await mw1.deployExternal()
 
     //How to get multisig wallet address
     let addr: Address = mw1.address
@@ -56,7 +40,7 @@ async function main(mnemonics: string[][]) {
 
     //How to add message to order
     let msg: MessageRelaxed = {
-        body: beginCell().storeBuffer(Buffer.from('Hello, world!')).endCell(),
+        body: beginCell().storeUint(0, 32).storeBuffer(Buffer.from('Hello, world!')).endCell(),
         info: {
             bounce: true,
             bounced: false,
@@ -67,11 +51,11 @@ async function main(mnemonics: string[][]) {
             ihrDisabled: true,
             ihrFee: 0n,
             type: "internal",
-            value: {coins: BigInt(10 * 10^9)} //1 TON == 1e9 nanoTON
+            value: { coins: toNano('0.01') }
         }
     }
 
-    order1.addMessage(msg, 0)
+    order1.addMessage(msg, 3)
 
 
     //How to add signature to order
@@ -79,12 +63,15 @@ async function main(mnemonics: string[][]) {
 
 
     //How to union signatures 
-    //First create another order
+    //let's create another order for example
     let order2: Order = new Order(0)
-    //Add any message to order
-    order2.addMessage(msg, 0)
+
+    //Order2 must have same messages as order1
+    order2.addMessage(msg, 3)
+
     //Add signature to order
     order2.addSignature(1, keyPairs[1].secretKey)
+
     //Union signatures
     order1.unionSignatures(order2)
 
@@ -94,7 +81,7 @@ async function main(mnemonics: string[][]) {
 
 
     //How to clear message in order
-    order2.clearMessage()
+    order2.clearMessages()
     
 
     //How to send order

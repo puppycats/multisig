@@ -35,7 +35,7 @@ export class Order {
         this.signatures = Object.assign({}, this.signatures, other.signatures)
     }
 
-    public clearMessage () {
+    public clearMessages () {
         this.messages = beginCell()
     }
 
