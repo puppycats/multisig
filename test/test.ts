@@ -101,6 +101,19 @@ describe('Order', () => {
         order.clearSignatures()
         expect(order.signatures).to.be.empty
     })
+
+    it('should clear messages', () => {
+        let order = new Order(123)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
+        order.addSignature(0, secretKeys[0])
+        order.addSignature(1, secretKeys[1])
+        order.addSignature(2, secretKeys[2])
+        order.clearMessages()
+        expect(order.messages).to.eql(beginCell())
+        expect(order.signatures).to.be.empty
+    })
 })
 
 describe('MultisigWallet', () => {
