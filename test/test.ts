@@ -2,9 +2,7 @@ import { expect } from 'chai'
 import { TonClient } from 'ton'
 import { beginCell, Cell, Address, ContractProvider, CommonMessageInfoRelaxed, MessageRelaxed } from 'ton-core'
 import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto'
-import { testAddress } from 'ton-emulator'
-import { ContractSystem } from 'ton-emulator/dist/emulator/ContractSystem'
-import { Treasure } from 'ton-emulator/dist/treasure/Treasure'
+import { testAddress, ContractSystem, Treasure } from 'ton-emulator'
 import { Order, MultisigWallet } from './../src/index'
 
 function createTestClient (net?: 'testnet' | 'mainnet') {
