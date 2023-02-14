@@ -17,7 +17,7 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 - `k` - number of signatures required to confirm a transaction
 - `address` - force to use this address as the wallet address
 - `provider` - `ContractProvider` instance
-- `client` - 
+- `client` - `TonClient` instance
 
 #### Properties
 - `owners` - `Dictionary<number, Buffer>` of signatures *ownerId => signature*
@@ -32,25 +32,25 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 `fromAddress (address: Address, opts: {
         provider?: ContractProvider,
         client?: TonClient
-    }): MultisigWallet`
+    }): Promise<MultisigWallet>`
 - `address` - address of the already deployed wallet
 - `provider` - `ContractProvider` instance
 - `client` - `TonClient` instance
 Static method to create a wallet instance from an already deployed wallet address
 
 >deployExternal
-`deployExternal (provider?: ContractProvider): void`
+`deployExternal (provider?: ContractProvider): Promise<void>`
  - `provider` - `ContractProvider` instance
 Deploy this `MutlisigWallet` via external message
 
 >deployInternal
-`deployInternal (sender: Sender, value: bigint): void`
+`deployInternal (sender: Sender, value: bigint): Promise<void>`
  - `sender` - `Sender` instance
  - `value` - value in nanoTons for deploy message
 Deploy this `MultisigWallet` via internal message
 
 >sendOrder
-`sendOrder (order: Order, secretKey: Buffer, provider?: ContractProvider): void`
+`sendOrder (order: Order, secretKey: Buffer, provider?: ContractProvider): Promise<void>`
 - `order` - order to send signed by owners
 - `secretKey` - secret key of the sender (to rootsign the order)
 Rootsign and send signed order to the wallet
@@ -94,8 +94,8 @@ Signs the order with the owner's secret key and adds the signature to the order
 - `other` - order to add signatures from
 Adds signatures from another order to this one
 
->clearMessage
-`clearMessage (): void`
+>clearMessages
+`clearMessages (): void`
 Clears all messages
 
 >clearSignatures

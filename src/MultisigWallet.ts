@@ -121,7 +121,7 @@ export class MultisigWallet {
         await provider.external(cell)
     }
     
-    public getOwnerIdByPubkey (publicKey: Buffer) {
+    public getOwnerIdByPubkey (publicKey: Buffer): number {
         for (const [key, value] of this.owners) {
             if (value.subarray(0, 32).equals(publicKey)) {
                 return key
