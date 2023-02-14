@@ -224,6 +224,11 @@ describe('MultisigWallet', () => {
 
         await multisig.sendOrder(order, secretKeys[3], provider)
         let txs = await system.run()
+
+        expect(txs).to.have.lengthOf(1)
+        if (txs[0].description.type == 'generic') {
+            expect(txs[0].description.aborted).to.be.false
+        }
     })
 
     it('should accept multiple orders and send messages', async () => {
