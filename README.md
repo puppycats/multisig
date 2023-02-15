@@ -39,6 +39,7 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 - `address` - address of the already deployed wallet
 - `provider` - `ContractProvider` instance
 - `client` - `TonClient` instance
+
 Static method to create a wallet instance from an already deployed wallet address
 
 ##### deployExternal
@@ -46,6 +47,7 @@ Static method to create a wallet instance from an already deployed wallet addres
 `deployExternal (provider?: ContractProvider): Promise<void>`
 
  - `provider` - `ContractProvider` instance
+ 
 Deploy this `MutlisigWallet` via external message
 
 ##### deployInternal
@@ -54,6 +56,7 @@ Deploy this `MutlisigWallet` via external message
 
  - `sender` - `Sender` instance
  - `value` - value in nanoTons for deploy message
+ 
 Deploy this `MultisigWallet` via internal message
 
 ##### sendOrder
@@ -62,14 +65,16 @@ Deploy this `MultisigWallet` via internal message
 
 - `order` - order to send signed by owners
 - `secretKey` - secret key of the sender (to rootsign the order)
-Rootsign and send signed order to the wallet
 - `provider` - `ContractProvider` instance
+
+Rootsign and send signed order to the wallet
 
 ##### getOwnerIdByPubkey
 
 `getOwnerIdByPubkey (publicKey: Buffer): number`
 
 - `publicKey` - public key of the owner
+
 Returns owner id by public key
 
 ##### formStateInit
@@ -95,6 +100,7 @@ Forms state init for this wallet
 
 - `message` - message to add to the order
 - `mode` - mode of the message
+
 Clears all previous signatures, renewing *querryId* with new time and adds a new message to the order
 
 ##### addSignature
@@ -102,12 +108,14 @@ Clears all previous signatures, renewing *querryId* with new time and adds a new
 
 - `ownerId` - id of the owner
 - `secretKey` - secret key of the owner
+
 Signs the order with the owner's secret key and adds the signature to the order
 
 ##### unionSignatures
 `unionSignatures (other: Order): void`
 
 - `other` - order to add signatures from
+
 Adds signatures from another order to this one
 
 ##### clearMessages
