@@ -6,7 +6,8 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 
 ### MultisigWallet
 #### Constructor
->`new MultisigWallet(publicKeys: Buffer[], workchain: number, walletId: number, k: number, opts?: {
+>
+`new MultisigWallet(publicKeys: Buffer[], workchain: number, walletId: number, k: number, opts?: {
         address?: Address,
         provider?: ContractProvider,
         client?: TonClient
@@ -28,46 +29,58 @@ There are two main classes in this library: `MultisigWallet` and `Order`.
 - `provider` - `ContractProvider` instance
 
 #### Methods
->fromAddress
+##### fromAddress
+
 `fromAddress (address: Address, opts: {
         provider?: ContractProvider,
         client?: TonClient
     }): Promise<MultisigWallet>`
+
 - `address` - address of the already deployed wallet
 - `provider` - `ContractProvider` instance
 - `client` - `TonClient` instance
 Static method to create a wallet instance from an already deployed wallet address
 
->deployExternal
+##### deployExternal
+
 `deployExternal (provider?: ContractProvider): Promise<void>`
+
  - `provider` - `ContractProvider` instance
 Deploy this `MutlisigWallet` via external message
 
->deployInternal
+##### deployInternal
+
 `deployInternal (sender: Sender, value: bigint): Promise<void>`
+
  - `sender` - `Sender` instance
  - `value` - value in nanoTons for deploy message
 Deploy this `MultisigWallet` via internal message
 
->sendOrder
+##### sendOrder
+
 `sendOrder (order: Order, secretKey: Buffer, provider?: ContractProvider): Promise<void>`
+
 - `order` - order to send signed by owners
 - `secretKey` - secret key of the sender (to rootsign the order)
 Rootsign and send signed order to the wallet
 - `provider` - `ContractProvider` instance
 
->getOwnerIdByPubkey
+##### getOwnerIdByPubkey
+
 `getOwnerIdByPubkey (publicKey: Buffer): number`
+
 - `publicKey` - public key of the owner
 Returns owner id by public key
 
->formStateInit
+##### formStateInit
+
 `formStateInit (): StateInit`
+
 Forms state init for this wallet
 
 ### Order
 #### Constructor
->`new Order(walletId: number, offset?: number)`
+`new Order(walletId: number, offset?: number)`
 - `walletId` - wallet id
 - `offset` - the time in seconds after which the order will expire (automatically updates after each `addMessage` call)
 
@@ -77,27 +90,32 @@ Forms state init for this wallet
 - `querryId` - golbal time until which the order is valid
 
 #### Methods
->addMessage
+##### addMessage
 `addMessage (message: MessageRelaxed, mode: number): void`
+
 - `message` - message to add to the order
 - `mode` - mode of the message
 Clears all previous signatures, renewing *querryId* with new time and adds a new message to the order
 
->addSignature
+##### addSignature
 `addSignature (ownerId: number, secretKey: Buffer): void`
+
 - `ownerId` - id of the owner
 - `secretKey` - secret key of the owner
 Signs the order with the owner's secret key and adds the signature to the order
 
->unionSignatures
+##### unionSignatures
 `unionSignatures (other: Order): void`
+
 - `other` - order to add signatures from
 Adds signatures from another order to this one
 
->clearMessages
+##### clearMessages
 `clearMessages (): void`
+
 Clears all messages
 
->clearSignatures
+##### clearSignatures
 `clearSignatures (): void`
+
 Clears all signatures
