@@ -1,5 +1,6 @@
-import { sign } from 'ton-crypto'
+import { sign, signVerify } from 'ton-crypto'
 import { beginCell, Builder, Cell, MessageRelaxed, storeMessageRelaxed } from 'ton-core'
+import { MultisigWallet } from './MultisigWallet'
 
 export class OrderBuilder {
     public messages: Builder = beginCell()
@@ -45,7 +46,13 @@ export class Order {
         this.messagesCell = messagesCell
     }
 
-    public addSignature (ownerId: number, secretKey: Buffer) {
+    public addSignature (ownerId: number, signature: Buffer, multisig: MultisigWallet) {
+        const signingHash = this.messagesCell.hash()
+        if (!signVerify(signingHash, signature, multisig.owners.get(ownerId)!.slice(0, -1))) throw('invalid signature')
+        this.signatures[ownerId] = signature
+    }
+
+    public sign (ownerId: number, secretKey: Buffer) {
         const signingHash = this.messagesCell.hash()
         this.signatures[ownerId] = sign(signingHash, secretKey)
     }

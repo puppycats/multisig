@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { TonClient } from 'ton'
 import { beginCell, Cell, Address, ContractProvider, CommonMessageInfoRelaxed, MessageRelaxed } from 'ton-core'
-import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto'
+import { getSecureRandomBytes, keyPairFromSeed, sign } from 'ton-crypto'
 import { testAddress, ContractSystem, Treasure } from 'ton-emulator'
 import { Order, OrderBuilder, MultisigWallet } from './../src/index'
 
@@ -64,9 +64,9 @@ describe('Order', () => {
         orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
         orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         let order = orderBuilder.finishOrder()
-        order.addSignature(0, secretKeys[0])
-        order.addSignature(1, secretKeys[1])
-        order.addSignature(2, secretKeys[2])
+        order.sign(0, secretKeys[0])
+        order.sign(1, secretKeys[1])
+        order.sign(2, secretKeys[2])
         expect(Object.keys(order.signatures)).to.have.lengthOf(3)
     })
 
@@ -76,17 +76,17 @@ describe('Order', () => {
         order1Builder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
         order1Builder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         let order1 = order1Builder.finishOrder()
-        order1.addSignature(0, secretKeys[0])
-        order1.addSignature(1, secretKeys[1])
-        order1.addSignature(2, secretKeys[2])
+        order1.sign(0, secretKeys[0])
+        order1.sign(1, secretKeys[1])
+        order1.sign(2, secretKeys[2])
         let order2Builder = new OrderBuilder(123)
         order2Builder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
         order2Builder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
         order2Builder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         let order2 = order2Builder.finishOrder()
-        order2.addSignature(3, secretKeys[3])
-        order2.addSignature(2, secretKeys[2])
-        order2.addSignature(5, secretKeys[5])
+        order2.sign(3, secretKeys[3])
+        order2.sign(2, secretKeys[2])
+        order2.sign(5, secretKeys[5])
         order1.unionSignatures(order2)
         expect(Object.keys(order1.signatures)).to.have.lengthOf(5)
     })
@@ -97,9 +97,9 @@ describe('Order', () => {
         orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
         orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         let order = orderBuilder.finishOrder()
-        order.addSignature(0, secretKeys[0])
-        order.addSignature(1, secretKeys[1])
-        order.addSignature(2, secretKeys[2])
+        order.sign(0, secretKeys[0])
+        order.sign(1, secretKeys[1])
+        order.sign(2, secretKeys[2])
         order.clearSignatures()
         expect(order.signatures).to.be.empty
     })
@@ -111,6 +111,17 @@ describe('Order', () => {
         orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         orderBuilder.clearMessages()
         expect(orderBuilder.messages).to.eql(beginCell())
+    })
+
+    it('should add signatures without secret key', () => {
+        let orderBuilder = new OrderBuilder(123)
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3)
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3)
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
+        let order = orderBuilder.finishOrder()
+        order.sign(0, secretKeys[0])
+        order.addSignature(1, sign(order.messagesCell.hash(), secretKeys[1]), new MultisigWallet(publicKeys, 0, 123, 2))
+        expect(Object.keys(order.signatures)).to.have.lengthOf(2)
     })
 })
 
@@ -262,7 +273,7 @@ describe('MultisigWallet', () => {
         orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)
         let order = orderBuilder.finishOrder()
         for (let i = 0; i < 5; i += 1) {
-            order.addSignature(i, secretKeys[i])
+            order.sign(i, secretKeys[i])
         }
 
         await multisig.sendOrder(order, secretKeys[0], provider)
