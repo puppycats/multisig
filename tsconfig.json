@@ -11,7 +11,6 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "files": [
         "src/index.ts",
-        "test/test.ts",
-        "src/examples.ts"
+        "test/test.ts"
     ]
 }

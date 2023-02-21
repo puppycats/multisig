@@ -107,9 +107,7 @@ export class MultisigWallet {
         let cell = beginCell()
             .storeUint(ownerId, 8)
             .storeBuilder(b)
-            .storeUint(this.walletId, 32)
-            .storeUint(order.queryId, 64)
-            .storeBuilder(order.messages)
+            .storeBuilder(order.messagesCell.asBuilder())
         .endCell()
         
         let signature = sign(cell.hash(), secretKey)
