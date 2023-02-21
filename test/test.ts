@@ -121,7 +121,7 @@ describe('MultisigWallet', () => {
     var treasure: Treasure
 
     function createProvider (multisig: MultisigWallet): ContractProvider {
-        const stateInit = multisig.formStateInit()
+        const stateInit = multisig.init
         return system.provider({
             address: multisig.address,
             init: {
