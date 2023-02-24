@@ -4,12 +4,12 @@
   },
   "dependencies": {
     "@orbs-network/ton-access": "^2.2.2",
-    "@types/chai": "^4.3.4",
-    "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.18",
+    "@types/jest": "^27.0.1",
     "buffer": "^6.0.3",
-    "chai": "^4.3.7",
-    "mocha": "^10.2.0",
+    "jest": "^27.1.0",
+    "jest-mock": "^27.1.0",
+    "ts-jest": "^27.0.5",
     "ton": "^13.3.0",
     "ton-core": "^0.46.0",
     "ton-crypto": "^3.2.0",
@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "yarn tsc --build --clean && yarn tsc --build",
-    "test": "yarn build && mocha dist/test/test.js",
+    "test": "jest --verbose --runInBand",
     "examples": "yarn build && node dist/src/examples.js"
   }
 }
