@@ -5,6 +5,7 @@ import { getSecureRandomBytes, keyPairFromSeed, sign } from 'ton-crypto';
 import { testAddress } from 'ton-emulator';
 import { OrderBuilder } from './OrderBuilder';
 import { MultisigWallet } from './MultisigWallet';
+import { Order } from './Order';
 
 function createInternalMessage(
     bounce: boolean,
@@ -381,5 +382,37 @@ describe('Order', () => {
                 new MultisigWallet(publicKeys, 0, 123, 2)
             )
         ).toThrow();
+    });
+
+    it('should export to cell', () => {});
+
+    it('should load from cell', () => {
+        const order1Cell = Cell.fromBoc(
+            Buffer.from(
+                'B5EE9C7241010201004700011B0000000031FD2F910000000001C0010068620014811EF5893924A58891883AA5563EE83305B47E62061D349E4BDECD66D2F2B1A02FAF08000000000000000000000000000021E26136',
+                'hex'
+            )
+        )[0];
+        const order2Cell = Cell.fromBoc(
+            Buffer.from(
+                'B5EE9C7241010301008C00021B8000000031FD2F910000000001C001020083E67410438C1007888D2CD45436502FBA877BECE26E7F384709B29B4A607181B8473CC4D45B44F7C47590740936231AE001727CCCA955DCDF959955D3889F4E0F00400068620014811EF5893924A58891883AA5563EE83305B47E62061D349E4BDECD66D2F2B1A02FAF080000000000000000000000000000621311E8',
+                'hex'
+            )
+        )[0];
+        const order3Cell = Cell.fromBoc(
+            Buffer.from(
+                'B5EE9C724101040100D100021B8000000031FD2F910000000001C0010201836100CBF8BBD98C5FE999FB232678DF1CC06A3522DB55736B3FF846C65AD1619694B8BDEF50B8DCF390AD54A4076B7444600FE54CC2EBFA68ED07F3063437DF0501C0030068620014811EF5893924A58891883AA5563EE83305B47E62061D349E4BDECD66D2F2B1A02FAF0800000000000000000000000000000083E67410438C1007888D2CD45436502FBA877BECE26E7F384709B29B4A607181B8473CC4D45B44F7C47590740936231AE001727CCCA955DCDF959955D3889F4E0F0040A434CD60',
+                'hex'
+            )
+        )[0];
+
+        const order1 = Order.fromCell(order1Cell);
+        const order2 = Order.fromCell(order2Cell);
+        const order3 = Order.fromCell(order3Cell);
+
+        expect(order1.messagesCell.refs).toHaveLength(1);
+        expect(Object.keys(order1.signatures)).toHaveLength(0);
+        expect(Object.keys(order2.signatures)).toHaveLength(1);
+        expect(Object.keys(order3.signatures)).toHaveLength(2);
     });
 });
