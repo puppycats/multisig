@@ -80,8 +80,6 @@ describe('MultisigWallet', () => {
     });
 
     it('should create MultisigWallet object from client', async () => {
-        const endpoint = await getHttpEndpoint();
-        const client = new TonClient({ endpoint });
         let multisig = new MultisigWallet(publicKeys, 0, 123, 2, { client });
     });
 
