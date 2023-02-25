@@ -120,4 +120,14 @@ describe('Order', () => {
         orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
         expect(() => orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)).toThrow()
     });
+
+    it('should throw on invalid signature', () => {
+        let orderBuilder = new OrderBuilder(123);
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        let order = orderBuilder.finishOrder();
+        order.sign(0, secretKeys[0]);
+        expect(() => order.addSignature(1, Buffer.alloc(64), new MultisigWallet(publicKeys, 0, 123, 2))).toThrow()
+    });
 });
