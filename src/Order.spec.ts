@@ -2,8 +2,8 @@ import { beginCell, Cell } from 'ton-core';
 import { getSecureRandomBytes, keyPairFromSeed, sign } from 'ton-crypto';
 import { testAddress } from 'ton-emulator';
 import { createInternalMessage } from './testUtils';
-import { OrderBuilder } from '../src/Order';
-import { MultisigWallet } from '../src/MultisigWallet';
+import { OrderBuilder } from './Order';
+import { MultisigWallet } from './MultisigWallet';
 
 describe('Order', () => {
     var publicKeys: Buffer[];

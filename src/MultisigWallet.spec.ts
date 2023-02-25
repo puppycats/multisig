@@ -2,8 +2,8 @@ import { beginCell, Cell, Address, ContractProvider } from 'ton-core';
 import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto';
 import { testAddress, ContractSystem, Treasure } from 'ton-emulator';
 import { createTestClient } from './createTestClient';
-import { MultisigWallet } from '../src/MultisigWallet';
-import { Order, OrderBuilder } from '../src/Order';
+import { MultisigWallet } from './MultisigWallet';
+import { Order, OrderBuilder } from './Order';
 import { createInternalMessage } from './testUtils';
 
 describe('MultisigWallet', () => {

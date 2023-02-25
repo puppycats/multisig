@@ -1,8 +1,8 @@
 import { Address, beginCell, MessageRelaxed, toNano, TonClient, WalletContractV4 } from "ton"
 import { getHttpEndpoint } from "@orbs-network/ton-access"
 import { KeyPair, mnemonicToPrivateKey } from "ton-crypto"
-import { MultisigWallet } from "./MultisigWallet"
-import { Order } from "./Order"
+import { MultisigWallet } from "./src/MultisigWallet"
+import { Order } from "./src/Order"
 
 async function main(mnemonics: string[][]) {
     const endpoint = await getHttpEndpoint()

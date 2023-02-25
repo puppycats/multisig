@@ -6,13 +6,11 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
+        "rootDir": "./src",
         "outDir": "./dist"
     },
     "$schema": "https://json.schemastore.org/tsconfig",
-    "files": [
-        "src/index.ts",
-        "test/test.ts",
-        "test/MultisigWallet.spec.ts",
-        "test/Order.spec.ts"
+    "include": [
+        "src/**/*"
     ]
 }
