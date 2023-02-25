@@ -111,4 +111,13 @@ describe('Order', () => {
         order.addSignature(1, sign(order.messagesCell.hash(), secretKeys[1]), new MultisigWallet(publicKeys, 0, 123, 2));
         expect(Object.keys(order.signatures)).toHaveLength(2);
     });
+
+    it('should throw on more than 4 messages', () => {
+        let orderBuilder = new OrderBuilder(123);
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        expect(() => orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)).toThrow()
+    });
 });
