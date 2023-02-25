@@ -1,3 +1,5 @@
+/* Made by @Gusarich and @Miandic */
+
 import { TonClient } from 'ton';
 import { keyPairFromSecretKey, sign } from 'ton-crypto';
 import {

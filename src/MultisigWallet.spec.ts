@@ -10,7 +10,7 @@ import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto';
 import { testAddress, ContractSystem, Treasure } from 'ton-emulator';
 import { getHttpEndpoint } from '@orbs-network/ton-access';
 import { MultisigWallet } from './MultisigWallet';
-import { OrderBuilder } from './Order';
+import { OrderBuilder } from './OrderBuilder';
 
 function createInternalMessage(
     bounce: boolean,
