@@ -31,6 +31,7 @@ describe('MultisigWallet', () => {
     var secretKeys: Buffer[];
     var system: ContractSystem;
     var treasure: Treasure;
+    var client: TonClient;
 
     function createProvider(multisig: MultisigWallet): ContractProvider {
         const stateInit = multisig.init;
@@ -51,6 +52,8 @@ describe('MultisigWallet', () => {
             publicKeys.push(kp.publicKey);
             secretKeys.push(kp.secretKey);
         }
+        const endpoint = await getHttpEndpoint()
+        client = new TonClient({ endpoint })
     });
 
     beforeEach(async () => {
@@ -61,6 +64,30 @@ describe('MultisigWallet', () => {
     it('should create MultisigWallet object', () => {
         let multisig = new MultisigWallet(publicKeys, 0, 123, 2);
     });
+
+    it('should create MultisigWallet object from client', async () => {
+        const endpoint = await getHttpEndpoint()
+        const client = new TonClient({ endpoint })
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2, { client });
+    });
+
+    it('should throw in fromAddress if no provider and no client', async () => {
+        try {
+            await MultisigWallet.fromAddress(Address.parse('EQADBXugwmn4YvWsQizHdWGgfCTN_s3qFP0Ae0pzkU-jwzoE'), {})
+            throw('did not throw')
+        } catch (e) {
+            expect(e).toMatch('Either provider or client must be specified');
+        }
+    })
+
+    it('should throw in fromAddress if the contract is inactive', async () => {
+        try {
+            await MultisigWallet.fromAddress(Address.parse('EQCzD8HVMlGCbXf3oOBxXBt5AfjhmmWKAC9fsJvJLFEO0SQt'), { client })
+            throw('did not throw')
+        } catch (e) {
+            expect(e).toMatch('Contract must be active');
+        }
+    })
 
     it('should deploy via internal message', async () => {
         let multisig = new MultisigWallet(publicKeys, 0, 123, 2);
@@ -90,6 +117,35 @@ describe('MultisigWallet', () => {
         expect(txs[0].endStatus).toEqual('active');
     });
 
+    it('should throw in deployExternal if there is no provider', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2);
+        try {
+            await multisig.deployExternal();
+            throw('did not throw')
+        } catch (e) {
+            expect(e).toMatch('you must specify provider if there is no such property in MultisigWallet instance');
+        }
+    });
+
+    it('should deploy via external message with provider from property', async () => {
+        let multisigTmp = new MultisigWallet(publicKeys, 0, 123, 2);
+        let provider = createProvider(multisigTmp);
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2, { provider });
+        
+        await treasure.send({
+            sendMode: 0,
+            to: multisig.address,
+            value: 1000000000n,
+            body: Cell.EMPTY,
+            bounce: false
+        });
+        await system.run();
+        await multisig.deployExternal();
+        let txs = await system.run();
+        expect(txs).toHaveLength(1);
+        expect(txs[0].endStatus).toEqual('active');
+    });
+
     it('should load contract from address', async () => {
         let multisig = new MultisigWallet(publicKeys, 0, 123, 2);
         let provider = createProvider(multisig);
@@ -100,9 +156,6 @@ describe('MultisigWallet', () => {
         expect(multisig.address.toRawString()).toEqual(multisigFromProvider.address.toRawString());
         expect(multisig.owners.keys().toString()).toEqual(multisigFromProvider.owners.keys().toString());
         expect(multisig.owners.values().toString()).toEqual(multisigFromProvider.owners.values().toString());
-
-        const endpoint = await getHttpEndpoint()
-        const client = new TonClient({ endpoint })
 
         const testMultisigAddress = Address.parse('EQADBXugwmn4YvWsQizHdWGgfCTN_s3qFP0Ae0pzkU-jwzoE');
         let multisigFromClient = await MultisigWallet.fromAddress(testMultisigAddress, { client });
@@ -134,6 +187,45 @@ describe('MultisigWallet', () => {
         order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
 
         await multisig.sendOrder(order.finishOrder(), secretKeys[3], provider);
+        let txs = await system.run();
+        expect(txs).toHaveLength(1);
+        if (txs[0].description.type == 'generic') {
+            expect(txs[0].description.aborted).toBeFalsy;
+        }
+    });
+
+    it('should throw in sendOrder if there is no provider', async () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2);
+        let provider = createProvider(multisig);
+        await multisig.deployInternal(treasure, 10000000000n);
+        await system.run();
+
+        let order = new OrderBuilder(123);
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
+        order.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+
+        try {
+            await multisig.sendOrder(order.finishOrder(), secretKeys[3]);
+            throw('did not throw')
+        } catch (e) {
+            expect(e).toMatch('you must specify provider if there is no such property in MultisigWallet instance')
+        }
+    });
+
+    it('should accept orders with provider from property', async () => {
+        let multisigTmp = new MultisigWallet(publicKeys, 0, 123, 2);
+        let provider = createProvider(multisigTmp);
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2, { provider });
+        await multisig.deployInternal(treasure, 10000000000n);
+        await system.run();
+
+        let order = new OrderBuilder(123);
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
+        order.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
+        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+
+        await multisig.sendOrder(order.finishOrder(), secretKeys[3]);
         let txs = await system.run();
         expect(txs).toHaveLength(1);
         if (txs[0].description.type == 'generic') {
@@ -182,5 +274,10 @@ describe('MultisigWallet', () => {
         await multisig.sendOrder(order, secretKeys[0], provider);
         let txs = await system.run();
         expect(txs).toHaveLength(5);
+    });
+
+    it('should throw in getOwnerIdByPubkey on invalid public key', () => {
+        let multisig = new MultisigWallet(publicKeys, 0, 123, 2);
+        expect(() => multisig.getOwnerIdByPubkey(Buffer.alloc(32))).toThrow('public key is not an owner')
     });
 });
