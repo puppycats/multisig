@@ -1,2 +1,2 @@
-export { Order, OrderBuilder } from './Order'
-export { MultisigWallet } from './MultisigWallet'
+export { Order, OrderBuilder } from './Order';
+export { MultisigWallet } from './MultisigWallet';

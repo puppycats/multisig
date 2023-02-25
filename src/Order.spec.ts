@@ -4,7 +4,13 @@ import { testAddress } from 'ton-emulator';
 import { OrderBuilder } from './Order';
 import { MultisigWallet } from './MultisigWallet';
 
-function createInternalMessage(bounce: boolean, dest: Address, value: bigint, body: Cell, mode: number = 3): MessageRelaxed {
+function createInternalMessage(
+    bounce: boolean,
+    dest: Address,
+    value: bigint,
+    body: Cell,
+    mode: number = 3
+): MessageRelaxed {
     return {
         info: {
             bounce,
@@ -17,10 +23,10 @@ function createInternalMessage(bounce: boolean, dest: Address, value: bigint, bo
             ihrFee: 0n,
             type: 'internal',
             value: {
-                coins: value
-            }
+                coins: value,
+            },
         },
-        body
+        body,
     };
 }
 
@@ -40,17 +46,65 @@ describe('Order', () => {
 
     it('should add messages', () => {
         let order = new OrderBuilder(123);
-        order.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        order.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        order.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        order.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        order.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        order.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
         expect(order.messages.endCell().refs.length).toEqual(3);
     });
 
     it('should add signatures', () => {
         let orderBuilder = new OrderBuilder(123);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
         let order = orderBuilder.finishOrder();
         order.sign(0, secretKeys[0]);
         order.sign(1, secretKeys[1]);
@@ -60,17 +114,65 @@ describe('Order', () => {
 
     it('should union signatures', () => {
         let order1Builder = new OrderBuilder(123);
-        order1Builder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        order1Builder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        order1Builder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        order1Builder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        order1Builder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        order1Builder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
         let order1 = order1Builder.finishOrder();
         order1.sign(0, secretKeys[0]);
         order1.sign(1, secretKeys[1]);
         order1.sign(2, secretKeys[2]);
         let order2Builder = new OrderBuilder(123);
-        order2Builder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        order2Builder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        order2Builder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        order2Builder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        order2Builder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        order2Builder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
         let order2 = order2Builder.finishOrder();
         order2.sign(3, secretKeys[3]);
         order2.sign(2, secretKeys[2]);
@@ -81,9 +183,33 @@ describe('Order', () => {
 
     it('should clear signatures', () => {
         let orderBuilder = new OrderBuilder(123);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
         let order = orderBuilder.finishOrder();
         order.sign(0, secretKeys[0]);
         order.sign(1, secretKeys[1]);
@@ -94,40 +220,164 @@ describe('Order', () => {
 
     it('should clear messages', () => {
         let orderBuilder = new OrderBuilder(123);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
         orderBuilder.clearMessages();
         expect(orderBuilder.messages).toEqual(beginCell());
-    })
+    });
 
     it('should add signatures without secret key', () => {
         let orderBuilder = new OrderBuilder(123);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
         let order = orderBuilder.finishOrder();
         order.sign(0, secretKeys[0]);
-        order.addSignature(1, sign(order.messagesCell.hash(), secretKeys[1]), new MultisigWallet(publicKeys, 0, 123, 2));
+        order.addSignature(
+            1,
+            sign(order.messagesCell.hash(), secretKeys[1]),
+            new MultisigWallet(publicKeys, 0, 123, 2)
+        );
         expect(Object.keys(order.signatures)).toHaveLength(2);
     });
 
     it('should throw on more than 4 messages', () => {
         let orderBuilder = new OrderBuilder(123);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
-        expect(() => orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3)).toThrow()
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        expect(() =>
+            orderBuilder.addMessage(
+                createInternalMessage(
+                    true,
+                    testAddress('address1'),
+                    2000000000n,
+                    Cell.EMPTY
+                ),
+                3
+            )
+        ).toThrow();
     });
 
     it('should throw on invalid signature', () => {
         let orderBuilder = new OrderBuilder(123);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 1000000000n, Cell.EMPTY), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address2'), 0n, beginCell().storeUint(3, 123).endCell()), 3);
-        orderBuilder.addMessage(createInternalMessage(true, testAddress('address1'), 2000000000n, Cell.EMPTY), 3);
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                1000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address2'),
+                0n,
+                beginCell().storeUint(3, 123).endCell()
+            ),
+            3
+        );
+        orderBuilder.addMessage(
+            createInternalMessage(
+                true,
+                testAddress('address1'),
+                2000000000n,
+                Cell.EMPTY
+            ),
+            3
+        );
         let order = orderBuilder.finishOrder();
         order.sign(0, secretKeys[0]);
-        expect(() => order.addSignature(1, Buffer.alloc(64), new MultisigWallet(publicKeys, 0, 123, 2))).toThrow()
+        expect(() =>
+            order.addSignature(
+                1,
+                Buffer.alloc(64),
+                new MultisigWallet(publicKeys, 0, 123, 2)
+            )
+        ).toThrow();
     });
 });
