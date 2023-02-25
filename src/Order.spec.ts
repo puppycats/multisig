@@ -1,9 +1,28 @@
-import { beginCell, Cell } from 'ton-core';
+import { beginCell, Cell, MessageRelaxed, Address } from 'ton-core';
 import { getSecureRandomBytes, keyPairFromSeed, sign } from 'ton-crypto';
 import { testAddress } from 'ton-emulator';
-import { createInternalMessage } from './testUtils';
 import { OrderBuilder } from './Order';
 import { MultisigWallet } from './MultisigWallet';
+
+function createInternalMessage(bounce: boolean, dest: Address, value: bigint, body: Cell, mode: number = 3): MessageRelaxed {
+    return {
+        info: {
+            bounce,
+            bounced: false,
+            createdAt: 0,
+            createdLt: 0n,
+            dest,
+            forwardFee: 0n,
+            ihrDisabled: true,
+            ihrFee: 0n,
+            type: 'internal',
+            value: {
+                coins: value
+            }
+        },
+        body
+    };
+}
 
 describe('Order', () => {
     var publicKeys: Buffer[];

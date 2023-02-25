@@ -1,10 +1,30 @@
-import { beginCell, Cell, Address, ContractProvider } from 'ton-core';
+import { TonClient } from 'ton';
+import { beginCell, Cell, Address, ContractProvider, MessageRelaxed } from 'ton-core';
 import { getSecureRandomBytes, keyPairFromSeed } from 'ton-crypto';
 import { testAddress, ContractSystem, Treasure } from 'ton-emulator';
-import { createTestClient } from './createTestClient';
+import { getHttpEndpoint } from "@orbs-network/ton-access";
 import { MultisigWallet } from './MultisigWallet';
-import { Order, OrderBuilder } from './Order';
-import { createInternalMessage } from './testUtils';
+import { OrderBuilder } from './Order';
+
+function createInternalMessage(bounce: boolean, dest: Address, value: bigint, body: Cell, mode: number = 3): MessageRelaxed {
+    return {
+        info: {
+            bounce,
+            bounced: false,
+            createdAt: 0,
+            createdLt: 0n,
+            dest,
+            forwardFee: 0n,
+            ihrDisabled: true,
+            ihrFee: 0n,
+            type: 'internal',
+            value: {
+                coins: value
+            }
+        },
+        body
+    };
+}
 
 describe('MultisigWallet', () => {
     var publicKeys: Buffer[];
@@ -81,7 +101,8 @@ describe('MultisigWallet', () => {
         expect(multisig.owners.keys().toString()).toEqual(multisigFromProvider.owners.keys().toString());
         expect(multisig.owners.values().toString()).toEqual(multisigFromProvider.owners.values().toString());
 
-        const client = createTestClient('mainnet');
+        const endpoint = await getHttpEndpoint()
+        const client = new TonClient({ endpoint })
 
         const testMultisigAddress = Address.parse('EQADBXugwmn4YvWsQizHdWGgfCTN_s3qFP0Ae0pzkU-jwzoE');
         let multisigFromClient = await MultisigWallet.fromAddress(testMultisigAddress, { client });
